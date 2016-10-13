@@ -56,4 +56,70 @@ class Privilege extends CI_Controller {
         redirect('privilege/login');
     }
 
+    public function pwd() {
+        $this->load->library('email');
+//
+//        $this->email->from('17785195258m@sina.cn', 'Name');
+//        $this->email->to('1004667450@qq.com');
+////        $this->email->cc('another@another-example.com');
+////        $this->email->bcc('them@their-example.com');
+//
+//        $this->email->subject('Email Test');
+//        $this->email->message('Testing the email class.');
+//
+//        $this->email->send();
+        
+        
+$config['protocol'] = 'smtp';
+$config['smtp_host'] = 'smtp.sina.com';
+$config['smtp_user'] = '17785195258m@sina.cn';
+$config['smtp_pass'] = '041207DLG';
+$config['mailtype'] = 'html';
+$config['validate'] = true;
+$config['priority'] = 1;
+$config['crlf'] = "\r\n";
+$config['smtp_port'] = 25;
+$config['charset'] = 'utf-8';
+$config['wordwrap'] = TRUE;
+$this->email->initialize($config);
+
+
+$this->email->from('17785195258m@sina.cn', 'AAA');
+$this->email->to('17785195258@163.com');
+//$this->email->cc('another@another-example.com');
+//$this->email->bcc('them@their-example.com');
+
+$this->email->subject('你好啊');
+$this->email->message('我是！');
+
+$this->email->send();
+echo $this->email->print_debugger();
+        
+//        $this->load->library('email');
+//        $config['protocol'] = 'smtp';
+//        $config['smtp_host'] = 'smtp.sina.cn';
+//        $config['smtp_user'] = '17785195258m@sina.cn';
+//        $config['smtp_pass'] = '041207DLG'; //	填写腾讯邮箱开启POP3/SMTP服务时的授权码，即核对密码正确 在邮箱设置 账号里面
+//        $config['smtp_port'] = 465;
+//        $config['smtp_timeout'] = 30;
+//        $config['mailtype'] = 'text';
+//        $config['charset'] = 'utf-8';
+//        $config['wordwrap'] = TRUE;
+//        $config['newline'] = PHP_EOL;
+//        $config['crlf'] = "\r\n";
+//        $this->email->initialize($config);
+//        $this->email->set_newline("\r\n");
+//        $this->email->from('17785195258m@sina.cn', '宇');
+//        $this->email->to('1004667450@qq.com');
+//        $this->email->subject('email'); // 发送标题
+//        $this->email->message('Testing the email class.'); //	内容
+//        echo $this->email->send();
+//        $status = $this->email->print_debugger();
+//        if ($status) {
+//            echo '发送成功！';
+//        } else {
+//            echo '发送失败！';
+//        }
+    }
+
 }

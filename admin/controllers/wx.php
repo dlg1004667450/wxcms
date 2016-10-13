@@ -38,7 +38,7 @@ class Wx extends MY_Controller {
         $data['total'] = $config['total_rows'];
         $data['wxbackarr'] = $this->wxback_model->search_wxback($this->input->get('keyword', true), $config['per_page'], $offset);
         $data['msgtype'] = $this->_get_msgtype();
-        $this->load->view('wx_back', $data);
+        $this->load->view('wxback_index', $data);
     }
 
     //修改页面
@@ -178,7 +178,7 @@ class Wx extends MY_Controller {
         }
         $data['wxinfo'] = $this->wxset_model->get_wxset();
 
-        $this->load->view('wx_set', $data);
+        $this->load->view('wxset_index', $data);
     }
 
     //----------------------------- wxmenu ------------------------------------
@@ -294,35 +294,56 @@ class Wx extends MY_Controller {
     }
 
     public function postwxmenu() {
-        $post = ' {
-		     "button":[
-		      {	
-		          "name":"关于我们",
-		          "sub_button":[
-		            {
-		          		"type":"click",
-		          		"name":"我们的故事",
-		          		"key":"STORY"
-		          	},
-		            {
-		          		"type":"click",
-		          		"name":"么么哒",
-		          		"key":"MMD"
-		          	},		  
-		          	{
-		          		"type":"view",
-		          		"name":"官网地址",
-		          		"url":"http://www.baidu.com"
-		          	}
-		          	
-		          ]
-		      },
-		      {
-		           "name":"走全国",
-		           "type":"view",
-		           "url":"http://www.moocba.com"		   
-		       }]
-		 }';
+        //更新菜单到服务器
+        $info = $this->wxmenu_model->get_wxmenu();
+        $tempinfo = array();
+        foreach ($info as $key => $value) {
+            if ($value['parent_id'] == 0) {
+                $value['sub_button'] = array();
+                foreach ($info as $k => $val) {
+                    if ($value['id'] == $val['parent_id']) {
+                        $value['sub_button'][] = $val;
+                    }
+                }
+                $tempinfo[] = $value;
+            }
+        }
+        /* 转换为菜单 */
+        $menuinfo = array();
+        foreach ($tempinfo as $key => $value) {
+            if (count($value['sub_button']) > 0) {
+                $temhuan = array();
+                $temhuan['name'] = urlencode($value['name']);
+                foreach ($value['sub_button'] as $k => $v) {
+                    $temsub = array();
+                    $temsub['name'] = urlencode($v['name']);
+                    $temsub['type'] = $v['type'];
+
+                    if ($v['type'] == 'view') {
+                        $tempdatac = unserialize($v['values']);
+                        $temsub['url'] = $tempdatac['lj_link'];
+                    } else {
+                        $temsub['key'] = $v['code'];
+                    }
+                    $temhuan['sub_button'][] = $temsub;
+                }
+                $menuinfo['button'][] = $temhuan;
+            } else {
+                $temhuan = array();
+                $temhuan['name'] = urlencode($value['name']);
+                $temhuan['type'] = $value['type'];
+                if ($value['type'] == 'view') {
+                    $tempdatac = unserialize($value['values']);
+                    $temhuan['url'] = $tempdatac['lj_link'];
+                } else {
+                    $temhuan['key'] = $value['code'];
+                }
+
+                $menuinfo['button'][] = $temhuan;
+            }
+        }
+
+        $post = urldecode(json_encode($menuinfo));
 
         $access_token = $this->getAccessToken();
         $url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token={$access_token}";
@@ -331,7 +352,7 @@ class Wx extends MY_Controller {
         if ($query['errcode'] == 0) {
             $this->_message('成功了！', 'wx/wxmenu');
         } else {
-            $this->_message('失败了！', 'wx/wxmenu', 3);
+            $this->_message('失败了！', 'wx/wxmenu');
         }
     }
 
@@ -343,23 +364,132 @@ class Wx extends MY_Controller {
         $query = $this->curlRequest($url, $post);
 
         if (empty($query['errcode'])) {
-            $this->_message('成功了！', 'wx/wxmenu', 3);
+            $this->_message('成功了！', 'wx/wxmenu');
         } else {
-            $this->_message('失败了！', 'wx/wxmenu', 3);
+            $this->_message('失败了！', 'wx/wxmenu');
         }
     }
 
     //获取微信平台上的menu
     public function getwxmenu() {
-        $post = array();
-        $access_token = $this->getAccessToken();
-        $url = "https://api.weixin.qq.com/cgi-bin/menu/get?access_token={$access_token}";
-        $query = $this->curlRequest($url, $post);
+//        $post = array();
+//        $access_token = $this->getAccessToken();
+//        $url = "https://api.weixin.qq.com/cgi-bin/menu/get?access_token={$access_token}";
+//        $query = $this->curlRequest($url, $post);
+//
+//        if (empty($query['errcode'])) {
+////            $this->wxmenu_model->deleteall();
+//            
+//            $this->_message('成功了！', 'wx/wxmenu');
+//        } else {
+//            $this->_message('失败了！', 'wx/wxmenu');
+//        }
+        $this->_message('暂未开放此功能！', 'wx/wxmenu');
+    }
 
-        if (empty($query['errcode'])) {
-            $this->_message('成功了！', 'home/index', 3);
+    //发送客服信息
+    function sendwxmsg() {
+        if (IS_POST) {
+            $this->form_validation->set_rules('openid', 'Openid', 'trim|required');
+            $this->form_validation->set_rules('content', '内容', 'trim|required');
+
+            if ($this->form_validation->run() == FALSE) {
+                $this->_message(validation_errors(), "wx/wxuser");
+            } else {
+                $openid = $this->input->post('openid');
+                $content = $this->input->post('content');
+
+                if ($this->sendmsg($content, $openid)) {
+                    $this->_message('成功了！', 'wx/wxuser');
+                } else {
+                    $this->_message('失败了！', 'wx/wxuser');
+                }
+            }
         } else {
-            $this->_message('失败了！', 'home/index', 3);
+            // 查询详细内容
+            $data['openid'] = $this->uri->segment(3);
+            $this->load->view('wxsendmsg', $data);
+        }
+    }
+
+    //发送客服信息 方法
+    function sendmsg($msg, $useropenid) {
+        if ($this->getAccessToken()) {
+            $access_token = $this->getAccessToken();
+            $url = "https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token={$access_token}";
+            $poststr = '{"touser":"' . $useropenid . '","msgtype":"text","text":{"content":"' . $msg . '"}}';
+
+            $info = $this->curlRequest($url, $poststr);
+
+            if (empty($info['errcode'])) {
+                if ($info['errcode'] == 0) {
+                    return true;
+                } else {
+                    $this->errId = $info['errcode'];
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //发送客服信息 方法
+    function sendmsgss($msg, $useropenid) {
+        if ($this->getAccessToken()) {
+            $access_token = $this->getAccessToken();
+            $url = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={$access_token}";
+            $poststr = '{
+                "touser":"OPENID",
+                "template_id":"ngqIpbwh8bUfcSsECmogfXcV14J0tQlEpBO27izEYtY",
+                "url":"http://weixin.qq.com/download",
+                "topcolor":"#FF0000",
+                "data":{
+                        "User": {
+                            "value":"黄先生",
+                            "color":"#173177"
+                        },
+                        "Date":{
+                            "value":"06月07日 19时24分",
+                            "color":"#173177"
+                        },
+                        "CardNumber": {
+                            "value":"0426",
+                            "color":"#173177"
+                        },
+                        "Type":{
+                            "value":"消费",
+                            "color":"#173177"
+                        },
+                        "Money":{
+                            "value":"人民币260.00元",
+                            "color":"#173177"
+                        },
+                        "DeadTime":{
+                            "value":"06月07日19时24分",
+                            "color":"#173177"
+                        },
+                        "Left":{
+                            "value":"6504.09",
+                            "color":"#173177"
+                        }
+                }
+            }';
+
+            $info = $this->curlRequest($url, $poststr);
+
+            if (empty($info['errcode'])) {
+                if ($info['errcode'] == 0) {
+                    return true;
+                } else {
+                    $this->errId = $info['errcode'];
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
         }
     }
 

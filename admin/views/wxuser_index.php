@@ -51,7 +51,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             <td><?php echo $val['openid'] ?></td>
                                             <td><?php echo $val['is_bang']?'绑定':'未绑定';?></td>
                                             <td><a href="<?php echo site_url('user/edit/' . $val['uid']) ?>" class="btn btn-primary btn-xs">查看微信帐号信息</a></td>
-                                            <td><a href="<?php echo site_url('user/edit/' . $val['uid']) ?>" class="btn btn-primary btn-xs">发送客服信息</a></td>
+                                            <td><a href="<?php echo site_url('wx/sendwxmsg/' . $val['openid']) ?>" class="btn btn-primary btn-xs">发送客服信息</a></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>

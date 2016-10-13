@@ -32,7 +32,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <div>
                                     <?php echo validation_errors(); ?>
                                 </div>
+                                
                                 <input type="submit" name="sub1" class="btn btn-lg btn-success btn-block" value="登录">
+                                <a href="<?php echo site_url('privilege/pwd') ?>" class="btn btn-lg btn-warning btn-block">找回密码</a>
                             </fieldset>
                         <?php echo form_close(); ?>
                     </div>

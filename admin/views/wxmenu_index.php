@@ -28,8 +28,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         <div class="col-lg-12">
                             <a href="<?php echo site_url('wx/add'); ?>" class="btn btn-success">添加菜单</a>
                             <a href="<?php echo site_url('wx/postwxmenu'); ?>" class="btn btn-primary">更新到微信Menu</a>
-                            <a href="<?php echo site_url('wx/delwxmenu'); ?>" class="btn btn-info">获取到本地Menu</a>
-                            <a href="<?php echo site_url('wx/getwxmenu'); ?>" class="btn btn-warning">清空微信Menu</a>
+                            <a href="<?php echo site_url('wx/getwxmenu'); ?>" class="btn btn-info">获取到本地Menu</a>
+                            <a href="<?php echo site_url('wx/delwxmenu'); ?>" class="btn btn-warning">清空微信Menu</a>
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
